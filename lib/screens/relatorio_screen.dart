@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:hortipraias/screens/editar_item_screem.dart';
 import '../models/item.dart';
-import '../widgets/item_tile.dart';
 import '../widgets/drawer_menu.dart';
 import '../services/pdf_generator.dart';
 
@@ -67,15 +66,28 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
     }
   }
 
-  void _editarItem(Item item) {
-    setState(() {
-      _itemEditando = item;
-      _produtoSelecionado = item.produto;
-      _unidadeSelecionada = item.unidade;
-      _fornecedorSelecionado = item.fornecedor;
-      _quantidadeController.text = item.quantidade.toString();
-      _valorController.text = item.valorUnitario.toStringAsFixed(2);
-    });
+  void _editarItem(int index, Item item) {
+    final produtos = produtosBox.values.toList();
+    final fornecedores = fornecedoresBox.values.toList();
+    final unidades =
+        this.unidades; // a lista de unidades já declarada na classe
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditarItemScreen(
+          index: index,
+          item: item,
+          onSave: (i, novoItem) {
+            itensBox.putAt(i, novoItem); // salva no Hive
+            setState(() {});
+          },
+          produtosDisponiveis: produtos,
+          fornecedoresDisponiveis: fornecedores,
+          unidadesDisponiveis: unidades,
+        ),
+      ),
+    );
   }
 
   void _excluirItem(Item item) async {
@@ -154,131 +166,218 @@ class _RelatorioScreenState extends State<RelatorioScreen> {
         onAdicionarFornecedor: _adicionarNovoFornecedor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextField(
               controller: _tituloController,
               decoration: InputDecoration(
                 labelText: 'Título do Relatório (opcional)',
+                prefixIcon: Icon(
+                  Icons.description,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
             ),
-            SizedBox(height: 10),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  DropdownButtonFormField<String>(
-                    value: _produtoSelecionado,
-                    hint: Text('Selecione o produto'),
-                    items: produtos
-                        .map(
-                          (value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(value),
+            const SizedBox(height: 20),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      DropdownButtonFormField<String>(
+                        value: _produtoSelecionado,
+                        hint: const Text('Selecione o produto'),
+                        items: produtos
+                            .map(
+                              (p) => DropdownMenuItem(value: p, child: Text(p)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _produtoSelecionado = val),
+                        validator: (val) =>
+                            val == null ? 'Escolha um produto' : null,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.shopping_basket,
+                            color: Theme.of(context).primaryColor,
                           ),
-                        )
-                        .toList(),
-                    onChanged: (val) =>
-                        setState(() => _produtoSelecionado = val),
-                    validator: (val) =>
-                        val == null ? 'Escolha um produto' : null,
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: _unidadeSelecionada,
-                    hint: Text('Selecione a unidade'),
-                    items: unidades
-                        .map(
-                          (value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(value),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _unidadeSelecionada,
+                        hint: const Text('Selecione a unidade'),
+                        items: unidades
+                            .map(
+                              (u) => DropdownMenuItem(value: u, child: Text(u)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _unidadeSelecionada = val),
+                        validator: (val) =>
+                            val == null ? 'Escolha uma unidade' : null,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.straighten,
+                            color: Theme.of(context).primaryColor,
                           ),
-                        )
-                        .toList(),
-                    onChanged: (val) =>
-                        setState(() => _unidadeSelecionada = val),
-                    validator: (val) =>
-                        val == null ? 'Escolha uma unidade' : null,
-                  ),
-                  DropdownButtonFormField<String>(
-                    value: _fornecedorSelecionado,
-                    hint: Text('Selecione o fornecedor'),
-                    items: fornecedores
-                        .map(
-                          (value) => DropdownMenuItem(
-                            value: value,
-                            child: Text(value),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _fornecedorSelecionado,
+                        hint: const Text('Selecione o fornecedor'),
+                        items: fornecedores
+                            .map(
+                              (f) => DropdownMenuItem(value: f, child: Text(f)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _fornecedorSelecionado = val),
+                        validator: (val) =>
+                            val == null ? 'Escolha um fornecedor' : null,
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(
+                            Icons.local_shipping,
+                            color: Theme.of(context).primaryColor,
                           ),
-                        )
-                        .toList(),
-                    onChanged: (val) =>
-                        setState(() => _fornecedorSelecionado = val),
-                    validator: (val) =>
-                        val == null ? 'Escolha um fornecedor' : null,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _quantidadeController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Quantidade',
+                          prefixIcon: Icon(
+                            Icons.format_list_numbered,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Digite a quantidade'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _valorController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Valor unitário (R\$)',
+                          prefixIcon: Icon(
+                            Icons.attach_money,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                        validator: (val) => val == null || val.isEmpty
+                            ? 'Digite o valor unitário'
+                            : null,
+                      ),
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _adicionarItem,
+                          child: Text(
+                            _itemEditando == null
+                                ? 'Adicionar ao Relatório'
+                                : 'Salvar Alterações',
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  TextFormField(
-                    controller: _quantidadeController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Quantidade'),
-                    validator: (val) => val == null || val.isEmpty
-                        ? 'Digite a quantidade'
-                        : null,
-                  ),
-                  TextFormField(
-                    controller: _valorController,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Valor unitário (R\$)',
-                    ),
-                    validator: (val) => val == null || val.isEmpty
-                        ? 'Digite o valor unitário'
-                        : null,
-                  ),
-                  SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: _adicionarItem,
-                    child: Text(
-                      _itemEditando == null
-                          ? 'Adicionar ao Relatório'
-                          : 'Salvar Alterações',
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 30),
+            Text(
+              'Itens do Relatório',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 22,
+                color: Colors.black87,
+              ),
+            ),
+            const Divider(thickness: 2, height: 30),
             ValueListenableBuilder(
               valueListenable: itensBox.listenable(),
               builder: (context, Box<Item> box, _) {
                 final itens = box.values.toList();
                 return itens.isNotEmpty
-                    ? Column(
-                        children: [
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: itens.length,
-                            itemBuilder: (context, index) {
-                              final item = itens[index];
-                              return ItemTile(
-                                item: item,
-                                onEditar: () => _editarItem(item),
-                                onExcluir: () => _excluirItem(item),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 16),
-                          ElevatedButton.icon(
-                            onPressed: _gerarPDF,
-                            icon: Icon(Icons.picture_as_pdf),
-                            label: Text('Gerar e Compartilhar PDF'),
-                          ),
-                        ],
+                    ? ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: itens.length,
+                        itemBuilder: (context, index) {
+                          final item = itens[index];
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            elevation: 2,
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.red.shade700,
+                                child: Text(
+                                  item.quantidade.toString(),
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
+                              title: Text(
+                                item.produto,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${item.unidade} • Fornecedor: ${item.fornecedor}\nValor Unitário: R\$${item.valorUnitario.toStringAsFixed(2)}',
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.black87,
+                                    ),
+                                    onPressed: () => _editarItem(index, item),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () => _excluirItem(item),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
                       )
-                    : Text('Nenhum item adicionado ainda.');
+                    : const Text('Nenhum item adicionado ainda.');
               },
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _gerarPDF,
+                icon: const Icon(Icons.picture_as_pdf),
+                label: const Text('Gerar e Compartilhar PDF'),
+              ),
             ),
           ],
         ),

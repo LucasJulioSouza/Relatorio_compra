@@ -14,17 +14,63 @@ void main() async {
   await Hive.openBox<String>('produtosBox');
   await Hive.openBox<String>('fornecedoresBox');
 
-  runApp(RelatorioApp());
+  runApp(const HortiPraiasApp());
 }
 
-class RelatorioApp extends StatelessWidget {
+class HortiPraiasApp extends StatelessWidget {
+  const HortiPraiasApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Relatório de Compras',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: RelatorioScreen(),
+      title: 'HortiPraias',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: Colors.red.shade700,
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          primary: Colors.red.shade700,
+          secondary: Colors.black,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.red.shade700,
+          foregroundColor: Colors.white,
+          elevation: 4,
+          centerTitle: true,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.shade700,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            textStyle: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          labelStyle: TextStyle(color: Colors.red.shade700),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red.shade700, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade400),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red.shade900),
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      home: RelatorioScreen(),
     );
   }
 }
